@@ -3051,21 +3051,10 @@ let activeCategory = 'all';
 let quizCorrect = 0, quizWrong = 0, quizStreak = 0, quizCard = null, quizAnswered = false;
 
 function loadCards() {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) {
-    cards = JSON.parse(saved);
-    // Merge any new vocab items
-    const existingIds = new Set(cards.map(c => c.id));
-    VOCAB.forEach((v,i) => {
-      const id = 'v'+i;
-      if (!existingIds.has(id)) {
-        cards.push(createCard(v,i));
-      }
-    });
-  } else {
+  if (!loadCardsFromCompact()) {
     cards = VOCAB.map((v,i) => createCard(v,i));
+    saveCards();
   }
-  saveCards();
 }
 
 function createCard(v,i) {
