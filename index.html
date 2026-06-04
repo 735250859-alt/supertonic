@@ -515,6 +515,38 @@ body {
   color: var(--text);
   margin-top: 10px;
 }
+
+/* Reading screen */
+.reading-item {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  border: 1.5px solid rgba(255,255,255,0.05);
+  transition: border-color 0.2s;
+  display: flex; align-items: center; gap: 12px;
+}
+.reading-item:active { border-color: var(--accent); }
+.reading-item .ri-level {
+  font-size: 10px; font-weight: 700; padding: 3px 8px;
+  border-radius: 6px; background: var(--accent2); color: var(--accent);
+  white-space: nowrap;
+}
+.reading-item .ri-title { flex:1; font-size: 15px; font-weight: 600; color: var(--text); }
+.reading-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-top: 12px;
+}
+.reading-header { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.reading-title { font-size: 18px; font-weight: 700; }
+.reading-level { font-size: 11px; padding: 3px 10px; border-radius: 8px; background: var(--accent2); color: var(--accent); font-weight: 600; }
+.speak-reading { display: flex; margin: 12px auto; width: auto; padding: 10px 28px; border-radius: 25px; font-size: 15px; }
+.reading-text { font-size: 16px; line-height: 1.8; color: #d8d8e8; margin: 12px 0; white-space: pre-wrap; }
+.reading-divider { text-align: center; color: var(--text2); font-size: 12px; margin: 16px 0 8px; letter-spacing: 1px; }
+.reading-translation { font-size: 14px; line-height: 1.7; color: var(--text2); white-space: pre-wrap; }
 </style>
 </head>
 <body>
@@ -581,6 +613,25 @@ body {
     <button class="btn secondary" onclick="nextQuiz()" id="quiz-next" style="display:none">Next →</button>
   </div>
 
+  <!-- READING SCREEN -->
+  <div class="screen" id="screen-read">
+    <div class="page-title"><span class="emoji">📖</span> Italian Reading</div>
+    <div id="reading-list"></div>
+    <div id="reading-detail" style="display:none">
+      <button class="btn secondary" onclick="showReadingList()" style="width:auto;padding:10px 18px;font-size:14px">← Back</button>
+      <div class="reading-card">
+        <div class="reading-header">
+          <div class="reading-title" id="reading-title"></div>
+          <div class="reading-level" id="reading-level"></div>
+        </div>
+        <button class="speak-btn speak-reading" id="reading-speak" onclick="speakReading()" title="Read aloud">🔊 Listen</button>
+        <div class="reading-text" id="reading-it"></div>
+        <div class="reading-divider">— Translation —</div>
+        <div class="reading-translation" id="reading-en"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- STATS SCREEN -->
   <div class="screen" id="screen-stats">
     <div class="page-title"><span class="emoji">📊</span> Statistics</div>
@@ -599,6 +650,7 @@ body {
 <div class="tabs">
   <div class="tab active" data-screen="learn"><span class="icon">📚</span>Learn</div>
   <div class="tab" data-screen="quiz"><span class="icon">🎯</span>Quiz</div>
+  <div class="tab" data-screen="read"><span class="icon">📖</span>Read</div>
   <div class="tab" data-screen="stats"><span class="icon">📊</span>Stats</div>
 </div>
 
@@ -2713,6 +2765,332 @@ const VOCAB = [
   {i:"Viceversa",e:"Vice versa / Conversely",p:"vee-che-ver-sa",c:"Grammar"},
   {i:"Piuttosto che",e:"Rather than",p:"pyoot-tos-to ke",c:"Grammar"},
   {i:"In quanto",e:"As / Since / In that",p:"een kwan-to",c:"Grammar"},
+// More Everyday Conversation
+  {i:"Allora...",e:"Well then... / So...",p:"al-lo-ra",c:"Everyday"},
+  {i:"Insomma",e:"In short / So / Anyway",p:"een-som-ma",c:"Everyday"},
+  {i:"Cioè",e:"That is / I mean",p:"cho-e",c:"Everyday"},
+  {i:"Ecco",e:"Here it is / There you go",p:"ek-ko",c:"Everyday"},
+  {i:"Eccomi",e:"Here I am",p:"ek-ko-mee",c:"Everyday"},
+  {i:"Eccolo",e:"Here it is (m)",p:"ek-ko-lo",c:"Everyday"},
+  {i:"Beh",e:"Well... / Uh...",p:"be",c:"Everyday"},
+  {i:"Uffa!",e:"Ugh! / What a drag!",p:"oof-fa",c:"Everyday"},
+  {i:"Basta!",e:"Enough! / Stop it!",p:"bas-ta",c:"Everyday"},
+  {i:"Chissà",e:"Who knows",p:"kees-sa",c:"Everyday"},
+  {i:"Figo",e:"Cool / Hot (slang)",p:"fee-go",c:"Everyday"},
+  {i:"Sfigato",e:"Loser / Unlucky (slang)",p:"sfee-ga-to",c:"Everyday"},
+  {i:"Boh",e:"I dunno (very informal)",p:"bo",c:"Everyday"},
+  {i:"Mica",e:"Not at all / Not really",p:"mee-ka",c:"Everyday"},
+  {i:"Proprio",e:"Exactly / Really",p:"pro-pryo",c:"Everyday"},
+  {i:"Appunto",e:"Exactly / Precisely",p:"ap-poon-to",c:"Everyday"},
+  {i:"Addirittura",e:"Even / Go so far as to",p:"ad-dee-reet-too-ra",c:"Everyday"},
+  {i:"Complimenti!",e:"Congratulations! / Well done!",p:"kom-plee-men-tee",c:"Everyday"},
+  {i:"Che ne so",e:"What do I know / How should I know",p:"ke ne so",c:"Everyday"},
+  {i:"Mi sa di sì",e:"I think so",p:"mee sa dee see",c:"Everyday"},
+  {i:"Mi sa di no",e:"I don't think so",p:"mee sa dee no",c:"Everyday"},
+  {i:"Fammi sapere",e:"Let me know",p:"fam-mee sa-pe-re",c:"Everyday"},
+  {i:"Non c'entra",e:"It has nothing to do with it",p:"non chen-tra",c:"Everyday"},
+  {i:"In gamba",e:"Capable / On the ball",p:"een gam-ba",c:"Everyday"},
+  {i:"Alla buona",e:"Casual / Informal",p:"al-la bwo-na",c:"Everyday"},
+  {i:"A proposito",e:"By the way / Speaking of",p:"a pro-po-zee-to",c:"Everyday"},
+
+  // Abstract Concepts
+  {i:"Significato",e:"Meaning / Significance",p:"seen-yee-fee-ka-to",c:"Concepts"},
+  {i:"Valore",e:"Value / Worth",p:"va-lo-re",c:"Concepts"},
+  {i:"Principio",e:"Principle / Beginning",p:"preen-chee-pyo",c:"Concepts"},
+  {i:"Concetto",e:"Concept",p:"kon-chet-to",c:"Concepts"},
+  {i:"Realtà",e:"Reality",p:"re-al-ta",c:"Concepts"},
+  {i:"Apparenza",e:"Appearance",p:"ap-pa-ren-tsa",c:"Concepts"},
+  {i:"Sostanza",e:"Substance / Essence",p:"sos-tan-tsa",c:"Concepts"},
+  {i:"Essenza",e:"Essence",p:"es-sen-tsa",c:"Concepts"},
+  {i:"Esistenza",e:"Existence",p:"e-zees-ten-tsa",c:"Concepts"},
+  {i:"Destino",e:"Destiny / Fate",p:"des-tee-no",c:"Concepts"},
+  {i:"Caso",e:"Chance / Case / Random",p:"ka-zo",c:"Concepts"},
+  {i:"Scopo",e:"Purpose / Goal",p:"sko-po",c:"Concepts"},
+  {i:"Senso",e:"Sense / Direction / Meaning",p:"sen-so",c:"Concepts"},
+  {i:"Tema",e:"Theme / Topic",p:"te-ma",c:"Concepts"},
+  {i:"Argomento",e:"Topic / Subject",p:"ar-go-men-to",c:"Concepts"},
+  {i:"Dettaglio",e:"Detail",p:"det-tal-yo",c:"Concepts"},
+  {i:"Aspetto",e:"Aspect / Appearance",p:"as-pet-to",c:"Concepts"},
+  {i:"Qualità",e:"Quality",p:"kwa-lee-ta",c:"Concepts"},
+  {i:"Quantità",e:"Quantity",p:"kwan-tee-ta",c:"Concepts"},
+  {i:"Misura",e:"Measure / Size",p:"mee-zoo-ra",c:"Concepts"},
+  {i:"Limite",e:"Limit / Boundary",p:"lee-mee-te",c:"Concepts"},
+  {i:"Equilibrio",e:"Balance / Equilibrium",p:"e-kwee-lee-bryo",c:"Concepts"},
+  {i:"Armonia",e:"Harmony",p:"ar-mo-nee-a",c:"Concepts"},
+  {i:"Caos",e:"Chaos",p:"ka-os",c:"Concepts"},
+  {i:"Progresso",e:"Progress",p:"pro-gres-so",c:"Concepts"},
+  {i:"Sviluppo",e:"Development / Growth",p:"zvee-loop-po",c:"Concepts"},
+  {i:"Civiltà",e:"Civilization",p:"chee-veel-ta",c:"Concepts"},
+  {i:"Cultura",e:"Culture",p:"kool-too-ra",c:"Concepts"},
+  {i:"Educazione",e:"Education / Manners",p:"e-doo-ka-tsyo-ne",c:"Concepts"},
+  {i:"Rivoluzione",e:"Revolution",p:"ree-vo-loo-tsyo-ne",c:"Concepts"},
+
+  // Professions
+  {i:"Ingegnere",e:"Engineer",p:"een-jen-ye-re",c:"Professions"},
+  {i:"Architetto",e:"Architect",p:"ar-kee-tet-to",c:"Professions"},
+  {i:"Giornalista",e:"Journalist",p:"jor-na-lees-ta",c:"Professions"},
+  {i:"Scrittore",e:"Writer (m)",p:"skreet-to-re",c:"Professions"},
+  {i:"Scrittrice",e:"Writer (f)",p:"skreet-tree-che",c:"Professions"},
+  {i:"Pittore",e:"Painter (m)",p:"peet-to-re",c:"Professions"},
+  {i:"Musicista",e:"Musician",p:"moo-zee-chees-ta",c:"Professions"},
+  {i:"Cantante",e:"Singer",p:"kan-tan-te",c:"Professions"},
+  {i:"Regista",e:"Director (film/theater)",p:"re-jees-ta",c:"Professions"},
+  {i:"Attore",e:"Actor",p:"at-to-re",c:"Professions"},
+  {i:"Attrice",e:"Actress",p:"at-tree-che",c:"Professions"},
+  {i:"Poliziotto",e:"Police officer",p:"po-lee-tsyot-to",c:"Professions"},
+  {i:"Pompiere",e:"Firefighter",p:"pom-pye-re",c:"Professions"},
+  {i:"Soldato",e:"Soldier",p:"sol-da-to",c:"Professions"},
+  {i:"Contadino",e:"Farmer",p:"kon-ta-dee-no",c:"Professions"},
+  {i:"Pescatore",e:"Fisherman",p:"pes-ka-to-re",c:"Professions"},
+  {i:"Meccanico",e:"Mechanic",p:"mek-ka-nee-ko",c:"Professions"},
+  {i:"Elettricista",e:"Electrician",p:"e-let-tree-chees-ta",c:"Professions"},
+  {i:"Idraulico",e:"Plumber",p:"ee-drow-lee-ko",c:"Professions"},
+  {i:"Falegname",e:"Carpenter",p:"fa-len-ya-me",c:"Professions"},
+  {i:"Parrucchiere",e:"Hairdresser",p:"par-rook-kye-re",c:"Professions"},
+  {i:"Barista",e:"Barista / Bartender",p:"ba-rees-ta",c:"Professions"},
+  {i:"Cameriere",e:"Waiter",p:"ka-me-rye-re",c:"Professions"},
+  {i:"Cameriera",e:"Waitress",p:"ka-me-rye-ra",c:"Professions"},
+  {i:"Cuoco",e:"Cook / Chef",p:"kwo-ko",c:"Professions"},
+  {i:"Segretario",e:"Secretary (m)",p:"se-gre-ta-ryo",c:"Professions"},
+  {i:"Imprenditore",e:"Entrepreneur",p:"eem-pren-dee-to-re",c:"Professions"},
+  {i:"Farmacista",e:"Pharmacist",p:"far-ma-chees-ta",c:"Professions"},
+  {i:"Veterinario",e:"Veterinarian",p:"ve-te-ree-na-ryo",c:"Professions"},
+
+  // More Body Parts
+  {i:"Fronte",e:"Forehead",p:"fron-te",c:"Health"},
+  {i:"Guancia",e:"Cheek",p:"gwan-cha",c:"Health"},
+  {i:"Mento",e:"Chin",p:"men-to",c:"Health"},
+  {i:"Sopracciglio",e:"Eyebrow",p:"so-prach-cheel-yo",c:"Health"},
+  {i:"Ciglio",e:"Eyelash",p:"cheel-yo",c:"Health"},
+  {i:"Palpebra",e:"Eyelid",p:"pal-pe-bra",c:"Health"},
+  {i:"Fronte",e:"Forehead",p:"fron-te",c:"Health"},
+  {i:"Tempia",e:"Temple (head)",p:"tem-pya",c:"Health"},
+  {i:"Mascella",e:"Jaw",p:"ma-shel-la",c:"Health"},
+  {i:"Labbro",e:"Lip",p:"lab-bro",c:"Health"},
+  {i:"Unghia",e:"Nail (finger/toe)",p:"oon-gya",c:"Health"},
+  {i:"Tallone",e:"Heel",p:"tal-lo-ne",c:"Health"},
+  {i:"Coscia",e:"Thigh",p:"ko-sha",c:"Health"},
+  {i:"Polpaccio",e:"Calf (leg)",p:"pol-pat-cho",c:"Health"},
+  {i:"Stinco",e:"Shin",p:"steen-ko",c:"Health"},
+  {i:"Vena",e:"Vein",p:"ve-na",c:"Health"},
+  {i:"Arteria",e:"Artery",p:"ar-te-rya",c:"Health"},
+  {i:"Nervo",e:"Nerve",p:"ner-vo",c:"Health"},
+  {i:"Scheletro",e:"Skeleton",p:"ske-le-tro",c:"Health"},
+  {i:"Colonna vertebrale",e:"Spine",p:"ko-lon-na ver-te-bra-le",c:"Health"},
+
+  // More Verbs
+  {i:"Abbassare",e:"To lower / Turn down",p:"ab-bas-sa-re",c:"Verbs"},
+  {i:"Accogliere",e:"To welcome",p:"ak-kol-ye-re",c:"Verbs"},
+  {i:"Affogare",e:"To drown",p:"af-fo-ga-re",c:"Verbs"},
+  {i:"Allargare",e:"To widen / Enlarge",p:"al-lar-ga-re",c:"Verbs"},
+  {i:"Apparire",e:"To appear",p:"ap-pa-ree-re",c:"Verbs"},
+  {i:"Apprezzare",e:"To appreciate",p:"ap-pret-tsa-re",c:"Verbs"},
+  {i:"Arrestare",e:"To arrest / Stop",p:"ar-res-ta-re",c:"Verbs"},
+  {i:"Assumere",e:"To hire / Assume",p:"as-soo-me-re",c:"Verbs"},
+  {i:"Attendere",e:"To wait for",p:"at-ten-de-re",c:"Verbs"},
+  {i:"Avvisare",e:"To notify / Warn",p:"av-vee-za-re",c:"Verbs"},
+  {i:"Bucare",e:"To puncture / Pierce",p:"boo-ka-re",c:"Verbs"},
+  {i:"Cavare",e:"To extract / Pull out",p:"ka-va-re",c:"Verbs"},
+  {i:"Cogliere",e:"To pick / Catch",p:"kol-ye-re",c:"Verbs"},
+  {i:"Concedere",e:"To grant / Concede",p:"kon-che-de-re",c:"Verbs"},
+  {i:"Confessare",e:"To confess",p:"kon-fes-sa-re",c:"Verbs"},
+  {i:"Confrontare",e:"To compare",p:"kon-fron-ta-re",c:"Verbs"},
+  {i:"Congratularsi",e:"To congratulate",p:"kon-gra-too-lar-see",c:"Verbs"},
+  {i:"Contare",e:"To count / Matter",p:"kon-ta-re",c:"Verbs"},
+  {i:"Contenere",e:"To contain",p:"kon-te-ne-re",c:"Verbs"},
+  {i:"Convenire",e:"To agree / Be convenient",p:"kon-ve-nee-re",c:"Verbs"},
+  {i:"Coprire",e:"To cover",p:"ko-pree-re",c:"Verbs"},
+  {i:"Costringere",e:"To force / Compel",p:"kos-treen-je-re",c:"Verbs"},
+  {i:"Danneggiare",e:"To damage",p:"dan-ned-ja-re",c:"Verbs"},
+  {i:"Dedicare",e:"To dedicate",p:"de-dee-ka-re",c:"Verbs"},
+  {i:"Deludere",e:"To disappoint",p:"de-loo-de-re",c:"Verbs"},
+  {i:"Diffondere",e:"To spread / Broadcast",p:"deef-fon-de-re",c:"Verbs"},
+  {i:"Distinguere",e:"To distinguish",p:"dees-teen-gwe-re",c:"Verbs"},
+  {i:"Dubitare",e:"To doubt",p:"doo-bee-ta-re",c:"Verbs"},
+  {i:"Eccedere",e:"To exceed / Go too far",p:"et-che-de-re",c:"Verbs"},
+  {i:"Elencare",e:"To list / Enumerate",p:"e-len-ka-re",c:"Verbs"},
+  {i:"Emergere",e:"To emerge",p:"e-mer-je-re",c:"Verbs"},
+  {i:"Emozionarsi",e:"To get emotional",p:"e-mo-tsyo-nar-see",c:"Verbs"},
+  {i:"Esagerare",e:"To exaggerate",p:"e-za-je-ra-re",c:"Verbs"},
+  {i:"Escludere",e:"To exclude",p:"es-kloo-de-re",c:"Verbs"},
+  {i:"Esprimere",e:"To express",p:"es-pree-me-re",c:"Verbs"},
+  {i:"Fissare",e:"To fix / Stare / Set",p:"fees-sa-re",c:"Verbs"},
+  {i:"Fondare",e:"To found / Establish",p:"fon-da-re",c:"Verbs"},
+  {i:"Frequentare",e:"To attend / Frequent",p:"fre-kwen-ta-re",c:"Verbs"},
+  {i:"Gettare",e:"To throw / Cast",p:"jet-ta-re",c:"Verbs"},
+  {i:"Girare",e:"To turn / Spin / Film",p:"jee-ra-re",c:"Verbs"},
+  {i:"Illuminare",e:"To illuminate / Light up",p:"eel-loo-mee-na-re",c:"Verbs"},
+  {i:"Imporre",e:"To impose",p:"eem-por-re",c:"Verbs"},
+  {i:"Impressionare",e:"To impress / Shock",p:"eem-pres-syo-na-re",c:"Verbs"},
+  {i:"Incazzarsi",e:"To get pissed off (vulgar)",p:"een-kat-tsar-see",c:"Verbs"},
+  {i:"Includere",e:"To include",p:"een-kloo-de-re",c:"Verbs"},
+  {i:"Indovinare",e:"To guess / Solve",p:"een-do-vee-na-re",c:"Verbs"},
+  {i:"Influenzare",e:"To influence",p:"een-floo-en-tsa-re",c:"Verbs"},
+  {i:"Ingrandire",e:"To enlarge",p:"een-gran-dee-re",c:"Verbs"},
+  {i:"Inseguire",e:"To chase / Follow",p:"een-se-gwee-re",c:"Verbs"},
+  {i:"Interrompere",e:"To interrupt",p:"een-ter-rom-pe-re",c:"Verbs"},
+  {i:"Invadere",e:"To invade",p:"een-va-de-re",c:"Verbs"},
+  {i:"Invecchiare",e:"To age / Grow old",p:"een-vek-kya-re",c:"Verbs"},
+  {i:"Licenziare",e:"To fire (from job)",p:"lee-chen-tsya-re",c:"Verbs"},
+  {i:"Litigare",e:"To argue / Fight",p:"lee-tee-ga-re",c:"Verbs"},
+  {i:"Masticare",e:"To chew",p:"mas-tee-ka-re",c:"Verbs"},
+  {i:"Mendicare",e:"To beg",p:"men-dee-ka-re",c:"Verbs"},
+  {i:"Mescolare",e:"To mix / Stir",p:"mes-ko-la-re",c:"Verbs"},
+  {i:"Mordere",e:"To bite",p:"mor-de-re",c:"Verbs"},
+  {i:"Negare",e:"To deny",p:"ne-ga-re",c:"Verbs"},
+  {i:"Noleggiare",e:"To rent",p:"no-led-ja-re",c:"Verbs"},
+  {i:"Occupare",e:"To occupy / Fill",p:"ok-koo-pa-re",c:"Verbs"},
+  {i:"Ospitare",e:"To host / Put up",p:"os-pee-ta-re",c:"Verbs"},
+  {i:"Pareggiare",e:"To draw / Tie / Equalize",p:"pa-red-ja-re",c:"Verbs"},
+  {i:"Passeggiare",e:"To stroll / Walk leisurely",p:"pas-sed-ja-re",c:"Verbs"},
+  {i:"Pettinare",e:"To comb / Do hair",p:"pet-tee-na-re",c:"Verbs"},
+  {i:"Piegare",e:"To fold / Bend",p:"pye-ga-re",c:"Verbs"},
+  {i:"Porgere",e:"To hand / Offer",p:"por-je-re",c:"Verbs"},
+  {i:"Possedere",e:"To own / Possess",p:"pos-se-de-re",c:"Verbs"},
+  {i:"Progettare",e:"To plan / Design",p:"pro-jet-ta-re",c:"Verbs"},
+  {i:"Rallentare",e:"To slow down",p:"ral-len-ta-re",c:"Verbs"},
+  {i:"Rassicurare",e:"To reassure",p:"ras-see-koo-ra-re",c:"Verbs"},
+  {i:"Reagire",e:"To react",p:"re-a-jee-re",c:"Verbs"},
+  {i:"Recitare",e:"To recite / Act",p:"re-chee-ta-re",c:"Verbs"},
+  {i:"Regalare",e:"To give as a gift",p:"re-ga-la-re",c:"Verbs"},
+  {i:"Resistere",e:"To resist / Withstand",p:"re-zees-te-re",c:"Verbs"},
+  {i:"Restituire",e:"To return / Give back",p:"res-tee-too-ee-re",c:"Verbs"},
+  {i:"Riassumere",e:"To summarize",p:"ree-as-soo-me-re",c:"Verbs"},
+  {i:"Ricevere",e:"To receive",p:"ree-che-ve-re",c:"Verbs"},
+  {i:"Rifiutare",e:"To refuse",p:"ree-fyoo-ta-re",c:"Verbs"},
+  {i:"Rimuovere",e:"To remove",p:"ree-mwo-ve-re",c:"Verbs"},
+  {i:"Rinnovare",e:"To renew",p:"reen-no-va-re",c:"Verbs"},
+  {i:"Riscaldare",e:"To heat up / Warm",p:"rees-kal-da-re",c:"Verbs"},
+  {i:"Ritardare",e:"To delay / Be late",p:"ree-tar-da-re",c:"Verbs"},
+  {i:"Ritirare",e:"To withdraw / Collect",p:"ree-tee-ra-re",c:"Verbs"},
+  {i:"Rovesciare",e:"To spill / Overturn",p:"ro-ve-sha-re",c:"Verbs"},
+  {i:"Sbandare",e:"To skid / Lose control",p:"sban-da-re",c:"Verbs"},
+  {i:"Scatenare",e:"To unleash / Trigger",p:"ska-te-na-re",c:"Verbs"},
+  {i:"Scivolare",e:"To slip / Slide",p:"shee-vo-la-re",c:"Verbs"},
+  {i:"Sconfiggere",e:"To defeat",p:"skon-feed-je-re",c:"Verbs"},
+  {i:"Scoppiare",e:"To explode / Burst",p:"skop-pya-re",c:"Verbs"},
+  {i:"Scorrere",e:"To flow / Run / Scroll",p:"skor-re-re",c:"Verbs"},
+  {i:"Scusarsi",e:"To apologize",p:"skoo-zar-see",c:"Verbs"},
+  {i:"Sfidare",e:"To challenge",p:"sfee-da-re",c:"Verbs"},
+  {i:"Sfuggire",e:"To escape / Slip away",p:"sfood-jee-re",c:"Verbs"},
+  {i:"Sgridare",e:"To scold / Tell off",p:"zgree-da-re",c:"Verbs"},
+  {i:"Simbolleggiare",e:"To symbolize",p:"seem-bo-led-ja-re",c:"Verbs"},
+  {i:"Sistemare",e:"To fix / Arrange / Tidy up",p:"sees-te-ma-re",c:"Verbs"},
+  {i:"Smentire",e:"To deny / Contradict",p:"zmen-tee-re",c:"Verbs"},
+  {i:"Soffiare",e:"To blow",p:"sof-fya-re",c:"Verbs"},
+  {i:"Sollevare",e:"To lift / Raise",p:"sol-le-va-re",c:"Verbs"},
+  {i:"Sopravvivere",e:"To survive",p:"so-prav-vee-ve-re",c:"Verbs"},
+  {i:"Sorgere",e:"To rise (sun) / Arise",p:"sor-je-re",c:"Verbs"},
+  {i:"Sospettare",e:"To suspect",p:"sos-pet-ta-re",c:"Verbs"},
+  {i:"Sostenere",e:"To support / Sustain / Claim",p:"sos-te-ne-re",c:"Verbs"},
+  {i:"Sottolineare",e:"To underline / Emphasize",p:"sot-to-lee-ne-a-re",c:"Verbs"},
+  {i:"Spaventare",e:"To scare / Frighten",p:"spa-ven-ta-re",c:"Verbs"},
+  {i:"Spettare",e:"To be up to / Be one's turn",p:"spet-ta-re",c:"Verbs"},
+  {i:"Spiegare",e:"To explain",p:"spye-ga-re",c:"Verbs"},
+  {i:"Spremere",e:"To squeeze / Press",p:"spre-me-re",c:"Verbs"},
+  {i:"Stabilire",e:"To establish / Set",p:"sta-bee-lee-re",c:"Verbs"},
+  {i:"Staccare",e:"To detach / Remove / Unplug",p:"stak-ka-re",c:"Verbs"},
+  {i:"Stampare",e:"To print / Stamp",p:"stam-pa-re",c:"Verbs"},
+  {i:"Starnutire",e:"To sneeze",p:"star-noo-tee-re",c:"Verbs"},
+  {i:"Strillare",e:"To shriek / Scream",p:"streel-la-re",c:"Verbs"},
+  {i:"Strumentalizzare",e:"To exploit / Manipulate",p:"stroo-men-ta-leed-dza-re",c:"Verbs"},
+  {i:"Superare",e:"To overcome / Exceed / Pass",p:"soo-pe-ra-re",c:"Verbs"},
+  {i:"Tendere",e:"To tend / Stretch",p:"ten-de-re",c:"Verbs"},
+  {i:"Testimoniare",e:"To testify",p:"tes-tee-mo-nya-re",c:"Verbs"},
+  {i:"Trascinare",e:"To drag / Pull",p:"tra-shee-na-re",c:"Verbs"},
+  {i:"Trasformare",e:"To transform",p:"tras-for-ma-re",c:"Verbs"},
+  {i:"Trovarsi",e:"To be located / Find oneself",p:"tro-var-see",c:"Verbs"},
+  {i:"Udire",e:"To hear (formal/literary)",p:"oo-dee-re",c:"Verbs"},
+  {i:"Urlare",e:"To scream / Yell",p:"oor-la-re",c:"Verbs"},
+  {i:"Vagliare",e:"To sift / Evaluate",p:"val-ya-re",c:"Verbs"},
+  {i:"Versare",e:"To pour / Shed",p:"ver-sa-re",c:"Verbs"},
+  {i:"Viziare",e:"To spoil / Pamper",p:"vee-tsya-re",c:"Verbs"},
+
+  // Food & Cuisine Extended
+  {i:"Antipasto",e:"Appetizer / Starter",p:"an-tee-pas-to",c:"Food"},
+  {i:"Primo",e:"First course",p:"pree-mo",c:"Food"},
+  {i:"Secondo",e:"Second / Main course",p:"se-kon-do",c:"Food"},
+  {i:"Contorno",e:"Side dish",p:"kon-tor-no",c:"Food"},
+  {i:"Dolce",e:"Dessert",p:"dol-che",c:"Food"},
+  {i:"Digestivo",e:"After-dinner liqueur",p:"dee-jes-tee-vo",c:"Food"},
+  {i:"Aperitivo",e:"Pre-dinner drink / Aperitif",p:"a-pe-ree-tee-vo",c:"Food"},
+  {i:"Stuzzichino",e:"Finger food / Snack",p:"stoot-tsee-kee-no",c:"Food"},
+  {i:"Bruschetta",e:"Bruschetta (toasted bread)",p:"broos-ket-ta",c:"Food"},
+  {i:"Tagliatelle",e:"Tagliatelle pasta",p:"tal-ya-tel-le",c:"Food"},
+  {i:"Ravioli",e:"Ravioli",p:"ra-vee-o-lee",c:"Food"},
+  {i:"Lasagne",e:"Lasagna",p:"la-zan-ye",c:"Food"},
+  {i:"Tortellini",e:"Tortellini",p:"tor-tel-lee-nee",c:"Food"},
+  {i:"Risotto",e:"Risotto",p:"ree-zot-to",c:"Food"},
+  {i:"Polenta",e:"Polenta (cornmeal)",p:"po-len-ta",c:"Food"},
+  {i:"Focaccia",e:"Focaccia bread",p:"fo-kat-cha",c:"Food"},
+  {i:"Ciabatta",e:"Ciabatta bread",p:"cha-bat-ta",c:"Food"},
+  {i:"Grissini",e:"Breadsticks",p:"grees-see-nee",c:"Food"},
+  {i:"Pesce spada",e:"Swordfish",p:"pe-she spa-da",c:"Food"},
+  {i:"Cozze",e:"Mussels",p:"kot-tse",c:"Food"},
+  {i:"Vongole",e:"Clams",p:"von-go-le",c:"Food"},
+  {i:"Calamari",e:"Squid",p:"ka-la-ma-ree",c:"Food"},
+  {i:"Seppia",e:"Cuttlefish",p:"sep-pya",c:"Food"},
+  {i:"Salsiccia",e:"Sausage",p:"sal-seet-cha",c:"Food"},
+  {i:"Salame",e:"Salami",p:"sa-la-me",c:"Food"},
+  {i:"Speck",e:"Speck (smoked ham)",p:"spek",c:"Food"},
+  {i:"Bresaola",e:"Cured beef",p:"bre-za-o-la",c:"Food"},
+
+  // Nature & Landscape
+  {i:"Collina",e:"Hill",p:"kol-lee-na",c:"Nature"},
+  {i:"Pianura",e:"Plain / Flatland",p:"pya-noo-ra",c:"Nature"},
+  {i:"Valle",e:"Valley",p:"val-le",c:"Nature"},
+  {i:"Scogliera",e:"Cliff / Coastline",p:"skol-ye-ra",c:"Nature"},
+  {i:"Grotta",e:"Cave",p:"grot-ta",c:"Nature"},
+  {i:"Vulcano",e:"Volcano",p:"vool-ka-no",c:"Nature"},
+  {i:"Terremoto",e:"Earthquake",p:"ter-re-mo-to",c:"Nature"},
+  {i:"Alluvione",e:"Flood",p:"al-loo-vee-o-ne",c:"Nature"},
+  {i:"Frana",e:"Landslide",p:"fra-na",c:"Nature"},
+  {i:"Alba",e:"Dawn / Sunrise",p:"al-ba",c:"Nature"},
+  {i:"Tramonto",e:"Sunset",p:"tra-mon-to",c:"Nature"},
+  {i:"Crepuscolo",e:"Twilight / Dusk",p:"kre-poos-ko-lo",c:"Nature"},
+  {i:"Orizzonte",e:"Horizon",p:"o-reet-tson-te",c:"Nature"},
+  {i:"Paesaggio",e:"Landscape / Scenery",p:"pa-e-zad-jo",c:"Nature"},
+  {i:"Cascata",e:"Waterfall",p:"kas-ka-ta",c:"Nature"},
+  {i:"Ghiacciaio",e:"Glacier",p:"gyat-cha-yo",c:"Nature"},
+  {i:"Golfo",e:"Gulf / Bay",p:"gol-fo",c:"Nature"},
+  {i:"Baia",e:"Bay",p:"ba-ya",c:"Nature"},
+  {i:"Scoglio",e:"Rock / Reef",p:"skol-yo",c:"Nature"},
+  {i:"Onda",e:"Wave",p:"on-da",c:"Nature"},
+  {i:"Marea",e:"Tide",p:"ma-re-a",c:"Nature"},
+  {i:"Corrente",e:"Current / Stream",p:"kor-ren-te",c:"Nature"},
+  {i:"Deserto",e:"Desert",p:"de-zer-to",c:"Nature"},
+  {i:"Oasi",e:"Oasis",p:"o-a-zee",c:"Nature"},
+  {i:"Palude",e:"Swamp / Marsh",p:"pa-loo-de",c:"Nature"},
+
+  // More Common Expressions
+  {i:"Ci mancherebbe",e:"Of course / Don't mention it",p:"chee man-ke-reb-be",c:"Phrases"},
+  {i:"Non c'è male",e:"Not bad",p:"non che ma-le",c:"Phrases"},
+  {i:"Tanto vale",e:"Might as well",p:"tan-to va-le",c:"Phrases"},
+  {i:"Vale la pena",e:"It's worth it",p:"va-le la pe-na",c:"Phrases"},
+  {i:"Non vale la pena",e:"It's not worth it",p:"non va-le la pe-na",c:"Phrases"},
+  {i:"Fa lo stesso",e:"It's all the same / Doesn't matter",p:"fa lo stes-so",c:"Phrases"},
+  {i:"Non fa una piega",e:"Flawless / Makes perfect sense",p:"non fa oo-na pye-ga",c:"Phrases"},
+  {i:"In bocca al lupo",e:"Good luck!",p:"een bok-ka al loo-po",c:"Phrases"},
+  {i:"Crepi il lupo",e:"Thank you (reply to good luck)",p:"kre-pee eel loo-po",c:"Phrases"},
+  {i:"Acqua in bocca!",e:"Keep it secret! / Mum's the word!",p:"ak-kwa een bok-ka",c:"Phrases"},
+  {i:"Non vedo l'ora",e:"I can't wait",p:"non ve-do lo-ra",c:"Phrases"},
+  {i:"Che ti piaccia o no",e:"Whether you like it or not",p:"ke tee pyat-cha o no",c:"Phrases"},
+  {i:"Alla fine della fiera",e:"At the end of the day",p:"al-la fee-ne del-la fye-ra",c:"Phrases"},
+  {i:"Non c'entra niente",e:"It has nothing to do with it",p:"non chen-tra nyen-te",c:"Phrases"},
+  {i:"Fa parte del gioco",e:"It's part of the game",p:"fa par-te del jo-ko",c:"Phrases"},
+  {i:"O la va o la spacca",e:"Sink or swim / All or nothing",p:"o la va o la spak-ka",c:"Phrases"},
+  {i:"A caval donato non si guarda in bocca",e:"Don't look a gift horse in the mouth",p:"a ka-val do-na-to non see gwar-da een bok-ka",c:"Phrases"},
+  {i:"Tra il dire e il fare c'è di mezzo il mare",e:"Easier said than done",p:"tra eel dee-re e eel fa-re che dee med-dzo eel ma-re",c:"Phrases"},
+  {i:"Chi dorme non piglia pesci",e:"The early bird catches the worm",p:"kee dor-me non peel-ya pe-shee",c:"Phrases"},
+  {i:"Meglio tardi che mai",e:"Better late than never",p:"mel-yo tar-dee ke mai",c:"Phrases"},
+  {i:"Patti chiari, amicizia lunga",e:"Clear agreements make long friendships",p:"pat-tee kya-ree a-mee-chee-tsee-a loon-ga",c:"Phrases"},
+  {i:"Tutto fa brodo",e:"Every little bit helps",p:"toot-to fa bro-do",c:"Phrases"},
+  {i:"Ride bene chi ride ultimo",e:"He who laughs last laughs best",p:"ree-de be-ne kee ree-de ool-tee-mo",c:"Phrases"},
+  {i:"L'abitudine non fa il monaco",e:"Don't judge a book by its cover",p:"la-bee-too-dee-ne non fa eel mo-na-ko",c:"Phrases"},
+  {i:"Paese che vai, usanza che trovi",e:"When in Rome, do as the Romans do",p:"pa-e-ze ke va-ee oo-zan-tsa ke tro-vee",c:"Phrases"},
+  {i:"Volere è potere",e:"Where there's a will there's a way",p:"vo-le-re e po-te-re",c:"Phrases"},
+  {i:"L'unione fa la forza",e:"Unity is strength",p:"loo-nyo-ne fa la for-tsa",c:"Phrases"},
+  {i:"Chi va piano va sano e va lontano",e:"Slow and steady wins the race",p:"kee va pya-no va sa-no e va lon-ta-no",c:"Phrases"},
 ];
 
 const EXAMPLE = {
@@ -3035,6 +3413,100 @@ const EXAMPLE = {
   "Arrabbiarsi": {s:"Non arrabbiarti per così poco.",t:"Don't get angry over such a small thing."},
   "Preoccuparsi": {s:"Non preoccuparti, tutto si sistemerà.",t:"Don't worry, everything will work out."},
 };
+
+// Additional example sentences appended to EXAMPLE
+Object.assign(EXAMPLE, {
+  "Allora...": {s:"Allora, cosa facciamo stasera?",t:"Well then, what shall we do tonight?"},
+  "Insomma": {s:"Insomma, non ho ancora deciso niente.",t:"Anyway, I haven't decided anything yet."},
+  "Cioè": {s:"Cioè, non hai ancora chiamato?",t:"I mean, you still haven't called?"},
+  "Ecco": {s:"Ecco il tuo caffè, proprio come piace a te.",t:"Here's your coffee, just the way you like it."},
+  "Basta!": {s:"Basta! Non ne posso più di queste scuse.",t:"Enough! I can't take these excuses anymore."},
+  "Chissà": {s:"Chissà se riuscirò mai a parlare italiano fluentemente.",t:"Who knows if I'll ever manage to speak Italian fluently."},
+  "Figo": {s:"Che figo questo telefono nuovo!",t:"How cool this new phone is!"},
+  "Boh": {s:"Boh, non ne ho idea di cosa stia succedendo.",t:"I dunno, I have no idea what's happening."},
+  "Complimenti!": {s:"Complimenti! Hai cucinato un pranzo stupendo.",t:"Congratulations! You cooked a wonderful lunch."},
+  "Fammi sapere": {s:"Fammi sapere a che ora arrivi domani.",t:"Let me know what time you arrive tomorrow."},
+  "A proposito": {s:"A proposito, hai sentito le notizie di oggi?",t:"By the way, did you hear today's news?"},
+  "Significato": {s:"Qual è il significato di questa parola in italiano?",t:"What's the meaning of this word in Italian?"},
+  "Valore": {s:"Il valore dell'amicizia non si misura in soldi.",t:"The value of friendship can't be measured in money."},
+  "Destino": {s:"Credi che il destino esista davvero?",t:"Do you believe that destiny really exists?"},
+  "Scopo": {s:"Lo scopo della vita è trovare la propria felicità.",t:"The purpose of life is to find your own happiness."},
+  "Dettaglio": {s:"Spiegami ogni dettaglio di quello che è successo.",t:"Explain every detail of what happened to me."},
+  "Equilibrio": {s:"L'equilibrio tra lavoro e famiglia è fondamentale.",t:"Balance between work and family is fundamental."},
+  "Ingegnere": {s:"Mio cugino fa l'ingegnere in una grande azienda.",t:"My cousin works as an engineer in a big company."},
+  "Giornalista": {s:"La giornalista ha fatto delle domande molto dirette.",t:"The journalist asked some very direct questions."},
+  "Regista": {s:"Il regista ha vinto un premio per il suo ultimo film.",t:"The director won an award for his latest film."},
+  "Barista": {s:"Il barista prepara il miglior cappuccino del quartiere.",t:"The barista makes the best cappuccino in the neighborhood."},
+  "Cameriere": {s:"Cameriere, può portarci il menù per favore?",t:"Waiter, can you bring us the menu please?"},
+  "Guancia": {s:"La nonna mi ha dato un bacio sulla guancia.",t:"Grandma gave me a kiss on the cheek."},
+  "Labbro": {s:"Mi sono morso il labbro mentre mangiavo.",t:"I bit my lip while I was eating."},
+  "Unghia": {s:"Devo tagliarmi le unghie prima del matrimonio.",t:"I need to cut my nails before the wedding."},
+  "Abbassare": {s:"Puoi abbassare il volume della televisione?",t:"Can you lower the TV volume?"},
+  "Accogliere": {s:"La famiglia mi ha accolto con grande calore.",t:"The family welcomed me with great warmth."},
+  "Apparire": {s:"Il sole ha iniziato ad apparire dietro le montagne.",t:"The sun began to appear behind the mountains."},
+  "Apprezzare": {s:"Apprezzo molto la tua onestà in questa situazione.",t:"I really appreciate your honesty in this situation."},
+  "Assumere": {s:"L'azienda ha deciso di assumere dieci nuovi dipendenti.",t:"The company decided to hire ten new employees."},
+  "Confrontare": {s:"Non confrontare la tua vita con quella degli altri.",t:"Don't compare your life with that of others."},
+  "Contare": {s:"Puoi contare su di me per qualsiasi cosa.",t:"You can count on me for anything."},
+  "Coprire": {s:"Copriti bene, fuori fa molto freddo stasera.",t:"Cover up well, it's very cold outside tonight."},
+  "Dubitare": {s:"Dubito che riuscirò a finire questo lavoro in tempo.",t:"I doubt I'll manage to finish this work on time."},
+  "Esagerare": {s:"Non esagerare, non era così grave la situazione!",t:"Don't exaggerate, the situation wasn't that serious!"},
+  "Esprimere": {s:"È importante esprimere i propri sentimenti liberamente.",t:"It's important to express your feelings freely."},
+  "Fissare": {s:"Smettila di fissare quella ragazza, è maleducato.",t:"Stop staring at that girl, it's rude."},
+  "Girare": {s:"Gira a sinistra al prossimo incrocio e poi vai dritto.",t:"Turn left at the next intersection and then go straight."},
+  "Illuminare": {s:"Le stelle illuminano il cielo in questa notte serena.",t:"The stars illuminate the sky on this clear night."},
+  "Indovinare": {s:"Prova a indovinare cosa ti ho comprato per il compleanno!",t:"Try to guess what I bought you for your birthday!"},
+  "Interrompere": {s:"Scusa se ti interrompo, ma ho una notizia urgente.",t:"Sorry to interrupt you, but I have urgent news."},
+  "Invecchiare": {s:"Invecchiare è inevitabile, ma crescere è facoltativo.",t:"Aging is inevitable, but growing up is optional."},
+  "Licenziare": {s:"Hanno dovuto licenziare metà del personale aziendale.",t:"They had to fire half of the company staff."},
+  "Mescolare": {s:"Mescola bene gli ingredienti fino a ottenere una crema.",t:"Mix the ingredients well until you get a cream."},
+  "Mordere": {s:"Il cane ha provato a mordere il postino.",t:"The dog tried to bite the mailman."},
+  "Occupare": {s:"Questo tavolo è occupato o possiamo sederci?",t:"Is this table occupied or can we sit down?"},
+  "Passeggiare": {s:"Mi piace passeggiare sul lungomare dopo cena.",t:"I like strolling along the seafront after dinner."},
+  "Piegare": {s:"Mi aiuti a piegare queste lenzuola pulite?",t:"Can you help me fold these clean sheets?"},
+  "Progettare": {s:"Stiamo progettando un viaggio in Giappone per l'autunno.",t:"We're planning a trip to Japan for the autumn."},
+  "Rallentare": {s:"Rallenta, stai guidando troppo veloce su questa strada.",t:"Slow down, you're driving too fast on this road."},
+  "Reagire": {s:"Non so come reagire a questa notizia inaspettata.",t:"I don't know how to react to this unexpected news."},
+  "Regalare": {s:"Vorrei regalare un libro interessante a mio padre.",t:"I'd like to give an interesting book to my father as a gift."},
+  "Resistere": {s:"Non resisto più, devo mangiare qualcosa subito.",t:"I can't resist anymore, I need to eat something right now."},
+  "Restituire": {s:"Devo restituire i libri alla biblioteca entro venerdì.",t:"I need to return the books to the library by Friday."},
+  "Riassumere": {s:"Puoi riassumere la storia in poche parole?",t:"Can you summarize the story in a few words?"},
+  "Rimuovere": {s:"Devo rimuovere questa macchia dal tappeto prima che si asciughi.",t:"I need to remove this stain from the carpet before it dries."},
+  "Rinnovare": {s:"Dobbiamo rinnovare il contratto di affitto il mese prossimo.",t:"We need to renew the rental contract next month."},
+  "Scivolare": {s:"Ho rischiato di scivolare sul pavimento bagnato.",t:"I almost slipped on the wet floor."},
+  "Scorrere": {s:"Lascia scorrere l'acqua fredda prima di entrare nella doccia.",t:"Let the cold water run before getting in the shower."},
+  "Scusarsi": {s:"Dovresti scusarti con lei per quello che hai detto.",t:"You should apologize to her for what you said."},
+  "Soffiare": {s:"Soffia sulle candeline e esprimi un desiderio!",t:"Blow out the candles and make a wish!"},
+  "Sopravvivere": {s:"Sopravvivere nella giungla richiede molte abilità.",t:"Surviving in the jungle requires many skills."},
+  "Sorgere": {s:"Il sole sorge alle sei del mattino d'estate.",t:"The sun rises at six in the morning in summer."},
+  "Sottolineare": {s:"Vorrei sottolineare l'importanza di questo progetto.",t:"I'd like to underline the importance of this project."},
+  "Spaventare": {s:"Non volevo spaventarti, mi dispiace tanto.",t:"I didn't mean to scare you, I'm so sorry."},
+  "Spiegare": {s:"Puoi spiegarmi come funziona questa macchina?",t:"Can you explain to me how this machine works?"},
+  "Staccare": {s:"Stacca la spina e vieni a fare una passeggiata con me.",t:"Unplug and come take a walk with me."},
+  "Stampare": {s:"Devo stampare i biglietti per il concerto di stasera.",t:"I need to print the tickets for tonight's concert."},
+  "Superare": {s:"Insieme possiamo superare qualsiasi difficoltà.",t:"Together we can overcome any difficulty."},
+  "Trovarsi": {s:"Il ristorante si trova in fondo a questa strada, a destra.",t:"The restaurant is located at the end of this street, on the right."},
+  "Urlare": {s:"Non urlare, i bambini stanno dormendo nella stanza accanto.",t:"Don't yell, the children are sleeping in the next room."},
+  "Collina": {s:"Dalla collina si vede tutta la città sottostante.",t:"From the hill you can see the whole city below."},
+  "Valle": {s:"La valle è piena di fiori selvatici in primavera.",t:"The valley is full of wildflowers in spring."},
+  "Vulcano": {s:"Il vulcano Etna è ancora attivo in Sicilia.",t:"The Etna volcano is still active in Sicily."},
+  "Tramonto": {s:"Il tramonto sul mare è lo spettacolo più bello del mondo.",t:"The sunset over the sea is the most beautiful show in the world."},
+  "Alba": {s:"Ci siamo svegliati all'alba per vedere il sole sorgere.",t:"We woke up at dawn to watch the sun rise."},
+  "Orizzonte": {s:"Si vede una nave all'orizzonte, sta arrivando.",t:"You can see a ship on the horizon, it's arriving."},
+  "Paesaggio": {s:"Il paesaggio toscano è famoso per la sua bellezza.",t:"The Tuscan landscape is famous for its beauty."},
+  "Onda": {s:"L'onda ha portato via il castello di sabbia dei bambini.",t:"The wave washed away the children's sandcastle."},
+  "Deserto": {s:"Il deserto del Sahara è il più grande del mondo.",t:"The Sahara Desert is the largest in the world."},
+  "Antipasto": {s:"Come antipasto prendo un tagliere di salumi misti.",t:"As a starter I'll have a mixed cured meat board."},
+  "Risotto": {s:"Il risotto ai funghi porcini è la specialità della casa.",t:"Porcini mushroom risotto is the house specialty."},
+  "Focaccia": {s:"La focaccia ligure è perfetta per un pranzo veloce.",t:"Ligurian focaccia is perfect for a quick lunch."},
+  "Cozze": {s:"Le cozze alla marinara sono il mio piatto preferito d'estate.",t:"Mussels marinara are my favorite summer dish."},
+  "Terremoto": {s:"Il terremoto ha causato molti danni nel centro storico.",t:"The earthquake caused a lot of damage in the historic center."},
+  "Vale la pena": {s:"Vale la pena visitare Firenze almeno una volta nella vita.",t:"It's worth visiting Florence at least once in your lifetime."},
+  "Non vale la pena": {s:"Non vale la pena arrabbiarsi per così poco.",t:"It's not worth getting angry over such a small thing."},
+  "Non c'è male": {s:"Come va il nuovo lavoro? — Non c'è male, mi sto abituando.",t:"How's the new job going? — Not bad, I'm getting used to it."},
+  "Meglio tardi che mai": {s:"Ho finito l'università a trentacinque anni. — Meglio tardi che mai!",t:"I finished university at thirty-five. — Better late than never!"},
+  "L'unione fa la forza": {s:"L'unione fa la forza: insieme possiamo farcela.",t:"Unity is strength: together we can make it."},
+});
 
 
 
@@ -3546,7 +4018,58 @@ document.querySelector('.tabs').addEventListener('click', e => {
   document.getElementById('screen-' + screen).classList.add('active');
   if (screen === 'stats') updateStats();
   if (screen === 'quiz') generateQuiz();
+  if (screen === 'read') { showReadingList(); document.getElementById('reading-detail').style.display = 'none'; document.getElementById('reading-list').style.display = ''; }
 });
+
+// ── READING ──────────────────────────────────────────
+let currentReading = -1;
+
+function initReadingList() {
+  const container = document.getElementById('reading-list');
+  if (typeof READINGS === 'undefined') { container.innerHTML = '<div class=\"empty-state\"><div class=\"emoji\">📖</div><div class=\"title\">No readings available</div></div>'; return; }
+  container.innerHTML = READINGS.map((r, i) =>
+    '<div class=\"reading-item\" onclick=\"showReading(' + i + ')\"><span class=\"ri-level\">' + r.level + '</span><span class=\"ri-title\">' + r.title + '</span></div>'
+  ).join('');
+}
+
+function showReading(idx) {
+  if (typeof READINGS === 'undefined' || idx < 0 || idx >= READINGS.length) return;
+  currentReading = idx;
+  const r = READINGS[idx];
+  document.getElementById('reading-list').style.display = 'none';
+  document.getElementById('reading-detail').style.display = '';
+  document.getElementById('reading-title').textContent = r.title;
+  document.getElementById('reading-level').textContent = r.level;
+  document.getElementById('reading-it').textContent = r.it;
+  document.getElementById('reading-en').textContent = r.en;
+  document.getElementById('main').scrollTop = 0;
+}
+
+function showReadingList() {
+  currentReading = -1;
+  document.getElementById('reading-list').style.display = '';
+  document.getElementById('reading-detail').style.display = 'none';
+  if (typeof speechSynthesis !== 'undefined') speechSynthesis.cancel();
+}
+
+function speakReading() {
+  if (currentReading < 0 || typeof READINGS === 'undefined' || currentReading >= READINGS.length) return;
+  const text = READINGS[currentReading].it;
+  if (!text || !window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'it-IT';
+  utter.rate = 0.8;
+  utter.pitch = 1;
+  const voices = speechSynthesis.getVoices();
+  const itVoice = voices.find(v => v.lang.startsWith('it'));
+  if (itVoice) utter.voice = itVoice;
+  const btn = document.getElementById('reading-speak');
+  if (btn) { btn.classList.add('speaking'); btn.textContent = '🔉 Reading...'; }
+  utter.onend = () => { if (btn) { btn.classList.remove('speaking'); btn.textContent = '🔊 Listen'; } };
+  utter.onerror = () => { if (btn) { btn.classList.remove('speaking'); btn.textContent = '🔊 Listen'; } };
+  speechSynthesis.speak(utter);
+}
 
 // ── RESET ────────────────────────────────────────────
 function resetProgress() {
@@ -3620,6 +4143,57 @@ document.getElementById('flashcard').addEventListener('touchend', e => {
     flipCard();
   }
 });
+
+const READINGS = [
+  {
+    title: "Mi presento",
+    level: "A1 Beginner",
+    it: `Ciao! Mi chiamo Marco e ho ventotto anni. Sono di Roma, la capitale d'Italia. Vivo in un appartamento in centro con il mio gatto, che si chiama Nerone. Lavoro come grafico in un'agenzia di pubblicità. Mi piace molto il mio lavoro perché posso essere creativo ogni giorno. Nel tempo libero mi piace suonare la chitarra, cucinare per gli amici e fare lunghe passeggiate lungo il Tevere. La domenica vado sempre a trovare i miei genitori che abitano in periferia. Mia madre prepara il pranzo e passiamo il pomeriggio insieme. Non so ancora cosa voglio fare nel futuro, ma per ora sono contento della mia vita.`,
+    en: `Hi! My name is Marco and I'm twenty-eight years old. I'm from Rome, the capital of Italy. I live in an apartment downtown with my cat, whose name is Nerone. I work as a graphic designer in an advertising agency. I really like my job because I can be creative every day. In my free time I like playing the guitar, cooking for friends, and taking long walks along the Tiber. On Sundays I always go visit my parents who live in the suburbs. My mother makes lunch and we spend the afternoon together. I don't know yet what I want to do in the future, but for now I'm happy with my life.`
+  },
+  {
+    title: "Al ristorante",
+    level: "A2 Elementary",
+    it: `Ieri sera sono andato a cena in un ristorante tipico italiano con alcuni amici. Appena siamo arrivati, il cameriere ci ha accolto con un sorriso e ci ha portato al nostro tavolo vicino alla finestra. Abbiamo ordinato un antipasto di bruschette e un tagliere di salumi e formaggi. Come primo piatto, io ho preso gli spaghetti alla carbonara, mentre i miei amici hanno scelto le lasagne e il risotto ai funghi. Tutto era delizioso! Dopo il primo, abbiamo preso anche un secondo: bistecca alla fiorentina per tutti. Per accompagnare il pasto abbiamo bevuto un Chianti rosso, un vino toscano molto apprezzato. Alla fine, eravamo così pieni che abbiamo rinunciato al dolce, ma abbiamo preso un caffè e un digestivo. Quando abbiamo chiesto il conto, abbiamo scoperto che era molto più economico di quanto pensassimo. Che bella serata!`,
+    en: `Last night I went to dinner at a typical Italian restaurant with some friends. As soon as we arrived, the waiter greeted us with a smile and took us to our table near the window. We ordered a starter of bruschetta and a board of cured meats and cheeses. For the first course, I had spaghetti carbonara, while my friends chose lasagna and mushroom risotto. Everything was delicious! After the first course, we also had a second course: Fiorentina steak for everyone. To accompany the meal we drank a red Chianti, a highly appreciated Tuscan wine. At the end, we were so full that we skipped dessert, but we had coffee and a digestif. When we asked for the bill, we found out it was much cheaper than we thought. What a lovely evening!`
+  },
+  {
+    title: "Una giornata a Firenze",
+    level: "A2 Elementary",
+    it: `Firenze è una delle città più belle che abbia mai visitato. Appena scesa dal treno, sono rimasta senza parole davanti alla maestosità del Duomo con la sua cupola progettata da Brunelleschi. Ho passato la mattinata a girovagare per le stradine del centro storico, ammirando le vetrine dei negozi di artigianato e assaggiando un gelato artigianale in Piazza della Signoria. A pranzo mi sono fermato in una piccola trattoria nascosta dietro Ponte Vecchio, dove ho mangiato la miglior ribollita della mia vita. Nel pomeriggio ho visitato la Galleria degli Uffizi, dove ho potuto ammirare opere di Botticelli, Leonardo e Caravaggio. La fila era lunga, ma ne è valsa assolutamente la pena. Verso sera, sono salito fino a Piazzale Michelangelo per godermi il tramonto sulla città. La vista era mozzafiato: i tetti rossi, il fiume Arno, le colline toscane sullo sfondo. In quel momento ho capito perché Firenze è considerata una delle città più romantiche del mondo.`,
+    en: `Florence is one of the most beautiful cities I have ever visited. As soon as I got off the train, I was speechless before the majesty of the Duomo with its dome designed by Brunelleschi. I spent the morning wandering through the narrow streets of the historic center, admiring the craft shop windows and tasting an artisan gelato in Piazza della Signoria. For lunch I stopped in a small trattoria hidden behind Ponte Vecchio, where I ate the best ribollita of my life. In the afternoon I visited the Uffizi Gallery, where I was able to admire works by Botticelli, Leonardo and Caravaggio. The line was long, but it was absolutely worth it. Toward evening, I climbed up to Piazzale Michelangelo to enjoy the sunset over the city. The view was breathtaking: the red roofs, the Arno river, the Tuscan hills in the background. In that moment I understood why Florence is considered one of the most romantic cities in the world.`
+  },
+  {
+    title: "La famiglia italiana",
+    level: "B1 Intermediate",
+    it: `Si dice spesso che la famiglia sia il cuore della società italiana, e non è un'esagerazione. In Italia, la famiglia non è solo un gruppo di persone legate dal sangue, ma un vero e proprio sistema di supporto che dura per tutta la vita. I nonni spesso vivono molto vicino ai nipoti, se non addirittura nella stessa casa, e contribuiscono attivamente alla loro educazione. Il pranzo della domenica è un'istituzione: ci si riunisce tutti insieme, si mangia per ore, si discute di politica, di calcio, si raccontano storie e si condividono gioie e preoccupazioni. I giovani italiani tendono a rimanere a casa con i genitori più a lungo rispetto ai loro coetanei del nord Europa. Non è raro che un ragazzo viva con mamma e papà fino ai trent'anni, a volte per necessità economica, altre volte semplicemente perché sta bene così. Negli ultimi anni però le cose stanno cambiando: i giovani vogliono più indipendenza e le famiglie diventano sempre più piccole. Eppure, nonostante i cambiamenti sociali, una cosa rimane costante: quando un italiano ha bisogno di aiuto, sa di poter contare sulla propria famiglia.`,
+    en: `It is often said that family is the heart of Italian society, and it's not an exaggeration. In Italy, family is not just a group of people bound by blood, but a true support system that lasts a lifetime. Grandparents often live very close to their grandchildren, if not in the same house, and actively contribute to their upbringing. Sunday lunch is an institution: everyone gathers together, eats for hours, discusses politics, soccer, tells stories and shares joys and worries. Young Italians tend to stay at home with their parents longer than their peers in northern Europe. It's not uncommon for a young person to live with mom and dad until the age of thirty, sometimes out of economic necessity, other times simply because they're fine with it. In recent years, however, things have been changing: young people want more independence and families are becoming smaller and smaller. Yet, despite social changes, one thing remains constant: when an Italian needs help, they know they can count on their family.`
+  },
+  {
+    title: "Le stagioni in Italia",
+    level: "A2 Elementary",
+    it: `L'Italia è un paese fortunato perché gode di quattro stagioni ben distinte, ognuna con il suo carattere speciale. La primavera inizia a marzo e porta con sé i primi fiori, le giornate più lunghe e il profumo dei fiori d'arancio nell'aria. È il periodo perfetto per visitare i giardini italiani e fare escursioni in montagna. L'estate è calda e vivace: le città si svuotano e tutti corrono verso il mare. Le spiagge della Sardegna, della Puglia e della Sicilia si riempiono di turisti, e la sera si mangia all'aperto fino a tardi. L'autunno è la stagione dei colori: le foglie diventano rosse e gialle, e nelle campagne si vendemmiano le uve per produrre il vino. È anche il periodo dei funghi e dei tartufi, che rendono la cucina autunnale particolarmente ricca. L'inverno può essere rigido al nord, dove la neve copre le Alpi, mentre al sud il clima rimane mite. Nelle settimane prima di Natale, le città italiane si illuminano di decorazioni e i mercatini natalizi riempiono le piazze. Ogni stagione ha il suo fascino, ma se devo scegliere, preferisco l'autunno: meno folla, temperature perfette e cibo straordinario.`,
+    en: `Italy is a lucky country because it enjoys four well-defined seasons, each with its special character. Spring begins in March and brings with it the first flowers, longer days, and the scent of orange blossoms in the air. It's the perfect time to visit Italian gardens and go hiking in the mountains. Summer is hot and lively: cities empty out and everyone rushes to the sea. The beaches of Sardinia, Puglia and Sicily fill up with tourists, and in the evening people eat outdoors until late. Autumn is the season of colors: leaves turn red and yellow, and in the countryside grapes are harvested to produce wine. It's also mushroom and truffle season, which makes autumn cuisine particularly rich. Winter can be harsh in the north, where snow covers the Alps, while in the south the climate remains mild. In the weeks before Christmas, Italian cities light up with decorations and Christmas markets fill the squares. Every season has its charm, but if I have to choose, I prefer autumn: fewer crowds, perfect temperatures and extraordinary food.`
+  },
+  {
+    title: "Il caffè: un rito italiano",
+    level: "B1 Intermediate",
+    it: `Per un italiano, il caffè non è semplicemente una bevanda: è un rito, un momento sacro che scandisce la giornata. Al mattino, la giornata inizia con un cappuccino al bar, magari accompagnato da un cornetto fresco. Il cappuccino però si beve solo al mattino, mai dopo pranzo: è una regola non scritta che ogni italiano rispetta. Dopo pranzo, il caffè deve essere rigorosamente espresso, corto e forte, servito in una tazzina calda. Al bancone del bar si consuma in pochi secondi, quasi fosse un colpo di adrenalina per affrontare il resto della giornata. Se invitate qualcuno a casa vostra, la prima cosa che offrite è un caffè: è un gesto di ospitalità, un modo per dire "benvenuto". Esistono infinite varianti: macchiato caldo, macchiato freddo, corretto con grappa, lungo, ristretto, decaffeinato, in tazza grande, al vetro. Ogni italiano ha la sua preferenza e la difende con passione. Quando viaggiate in Italia, ricordate: non chiedete mai un cappuccino dopo le undici del mattino, e non diluite mai un espresso con acqua dopo che è stato servito. Il caffè è una cosa seria!`,
+    en: `For an Italian, coffee is not simply a drink: it's a ritual, a sacred moment that marks the rhythm of the day. In the morning, the day begins with a cappuccino at the bar, perhaps accompanied by a fresh croissant. Cappuccino, however, is only drunk in the morning, never after lunch: it's an unwritten rule that every Italian respects. After lunch, coffee must be strictly espresso, short and strong, served in a warm cup. At the bar counter it's consumed in a few seconds, almost like a shot of adrenaline to face the rest of the day. If you invite someone to your home, the first thing you offer is a coffee: it's a gesture of hospitality, a way of saying "welcome". There are endless variations: macchiato hot, macchiato cold, corrected with grappa, long, restricted, decaf, in a large cup, in a glass. Every Italian has their preference and defends it passionately. When you travel in Italy, remember: never ask for a cappuccino after eleven in the morning, and never dilute an espresso with water after it has been served. Coffee is serious business!`
+  },
+  {
+    title: "Proverbi italiani",
+    level: "B2 Upper Intermediate",
+    it: `I proverbi sono una parte fondamentale della cultura italiana. Racchiudono la saggezza popolare accumulata in secoli di storia e vengono usati quotidianamente in ogni tipo di conversazione. Ecco alcuni dei più famosi: "Chi va piano va sano e va lontano" significa che la costanza e la pazienza portano a risultati migliori della fretta. "Tra il dire e il fare c'è di mezzo il mare" ci ricorda che è più facile parlare che agire. "A caval donato non si guarda in bocca" significa che non bisogna essere troppo esigenti con ciò che si riceve in dono. "Il lupo perde il pelo ma non il vizio" descrive chi, nonostante le apparenze, non cambia mai veramente le proprie cattive abitudini. "Paese che vai, usanza che trovi" è un invito ad adattarsi alle tradizioni locali quando si viaggia. "Ride bene chi ride ultimo" significa che non bisogna cantare vittoria troppo presto. I proverbi sono come piccole pillole di saggezza: bastano poche parole per esprimere un concetto profondo, e anche chi non ha studiato può capirli e usarli. Questo è il bello della cultura popolare italiana: è democratica, accessibile a tutti, eppure ricca di significato.`,
+    en: `Proverbs are a fundamental part of Italian culture. They encapsulate popular wisdom accumulated over centuries of history and are used daily in all kinds of conversations. Here are some of the most famous ones: "He who goes slowly goes safely and goes far" means that consistency and patience bring better results than haste. "Between saying and doing there's the sea in between" reminds us that it's easier to talk than to act. "Don't look a gift horse in the mouth" means you shouldn't be too demanding with what you receive as a gift. "The wolf loses its fur but not its vice" describes those who, despite appearances, never truly change their bad habits. "The country you go to, the customs you find" is an invitation to adapt to local traditions when traveling. "He who laughs last laughs best" means one shouldn't claim victory too early. Proverbs are like little pills of wisdom: just a few words are enough to express a deep concept, and even those who haven't studied can understand and use them. This is the beauty of Italian popular culture: it's democratic, accessible to everyone, yet rich in meaning.`
+  },
+  {
+    title: "Una ricetta semplice: Spaghetti aglio e olio",
+    level: "A2 Elementary",
+    it: `Vuoi preparare un piatto italiano semplice ma delizioso? Ti spiego come fare gli spaghetti aglio e olio, un classico della cucina italiana che richiede pochissimi ingredienti. Prima di tutto, metti a bollire una pentola d'acqua salata per la pasta. Mentre l'acqua si scalda, prendi una padella grande e versa quattro cucchiai di olio extravergine d'oliva. Aggiungi due spicchi d'aglio tagliati a fettine sottili e un peperoncino rosso secco. Accendi il fuoco basso e lascia soffriggere lentamente: l'aglio deve diventare dorato, ma attenzione a non bruciarlo! Quando l'acqua bolle, butta gli spaghetti e cuocili al dente, seguendo i minuti indicati sulla confezione. Un minuto prima di scolare la pasta, prendi un mestolo di acqua di cottura e versala nella padella con l'aglio e l'olio. Scola gli spaghetti e saltali nella padella a fuoco vivo per un minuto, mescolando bene per far assorbire il condimento. Se vuoi, aggiungi del prezzemolo fresco tritato. Servi subito, ben caldo. Il segreto di questo piatto sta nella semplicità: pochi ingredienti, ma di ottima qualità.`,
+    en: `Do you want to prepare a simple but delicious Italian dish? Let me explain how to make spaghetti aglio e olio, a classic of Italian cuisine that requires very few ingredients. First of all, put a pot of salted water on to boil for the pasta. While the water heats up, take a large pan and pour four tablespoons of extra virgin olive oil. Add two cloves of garlic cut into thin slices and a dried red chili pepper. Turn on low heat and let it fry slowly: the garlic should become golden, but be careful not to burn it! When the water boils, throw in the spaghetti and cook it al dente, following the minutes indicated on the package. One minute before draining the pasta, take a ladle of cooking water and pour it into the pan with the garlic and oil. Drain the spaghetti and sauté them in the pan over high heat for one minute, mixing well to absorb the seasoning. If you like, add some chopped fresh parsley. Serve immediately, very hot. The secret of this dish lies in its simplicity: few ingredients, but of excellent quality.`
+  }
+];
 </script>
 </body>
 </html>
