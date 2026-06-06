@@ -4047,17 +4047,44 @@ function showReading(idx) {
 
 function showReadingList() {
   currentReading = -1;
+  readingPaused = false;
   initReadingList();
   document.getElementById('reading-list').style.display = '';
   document.getElementById('reading-detail').style.display = 'none';
   if (typeof speechSynthesis !== 'undefined') speechSynthesis.cancel();
+  const btn = document.getElementById('reading-speak');
+  if (btn) { btn.classList.remove('speaking'); btn.textContent = '🔊 Listen'; }
 }
+
+let readingPaused = false;
 
 function speakReading() {
   if (currentReading < 0 || typeof READINGS === 'undefined' || currentReading >= READINGS.length) return;
+  if (!window.speechSynthesis) return;
+
+  const btn = document.getElementById('reading-speak');
+
+  // If currently speaking and not paused → pause
+  if (speechSynthesis.speaking && !speechSynthesis.paused) {
+    speechSynthesis.pause();
+    readingPaused = true;
+    if (btn) { btn.classList.remove('speaking'); btn.textContent = '▶️ Resume'; }
+    return;
+  }
+
+  // If paused → resume
+  if (speechSynthesis.paused) {
+    speechSynthesis.resume();
+    readingPaused = false;
+    if (btn) { btn.classList.add('speaking'); btn.textContent = '⏸️ Pause'; }
+    return;
+  }
+
+  // Start new reading
   const text = READINGS[currentReading].it;
-  if (!text || !window.speechSynthesis) return;
+  if (!text) return;
   speechSynthesis.cancel();
+  readingPaused = false;
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = 'it-IT';
   utter.rate = 0.8;
@@ -4065,10 +4092,9 @@ function speakReading() {
   const voices = speechSynthesis.getVoices();
   const itVoice = voices.find(v => v.lang.startsWith('it'));
   if (itVoice) utter.voice = itVoice;
-  const btn = document.getElementById('reading-speak');
-  if (btn) { btn.classList.add('speaking'); btn.textContent = '🔉 Reading...'; }
-  utter.onend = () => { if (btn) { btn.classList.remove('speaking'); btn.textContent = '🔊 Listen'; } };
-  utter.onerror = () => { if (btn) { btn.classList.remove('speaking'); btn.textContent = '🔊 Listen'; } };
+  if (btn) { btn.classList.add('speaking'); btn.textContent = '⏸️ Pause'; }
+  utter.onend = () => { readingPaused = false; if (btn) { btn.classList.remove('speaking'); btn.textContent = '🔊 Listen'; } };
+  utter.onerror = () => { readingPaused = false; if (btn) { btn.classList.remove('speaking'); btn.textContent = '🔊 Listen'; } };
   speechSynthesis.speak(utter);
 }
 
