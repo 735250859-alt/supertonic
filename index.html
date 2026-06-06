@@ -4018,7 +4018,7 @@ document.querySelector('.tabs').addEventListener('click', e => {
   document.getElementById('screen-' + screen).classList.add('active');
   if (screen === 'stats') updateStats();
   if (screen === 'quiz') generateQuiz();
-  if (screen === 'read') { showReadingList(); document.getElementById('reading-detail').style.display = 'none'; document.getElementById('reading-list').style.display = ''; }
+  if (screen === 'read') showReadingList();
 });
 
 // ── READING ──────────────────────────────────────────
@@ -4047,6 +4047,7 @@ function showReading(idx) {
 
 function showReadingList() {
   currentReading = -1;
+  initReadingList();
   document.getElementById('reading-list').style.display = '';
   document.getElementById('reading-detail').style.display = 'none';
   if (typeof speechSynthesis !== 'undefined') speechSynthesis.cancel();
