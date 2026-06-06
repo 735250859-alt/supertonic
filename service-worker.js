@@ -1,4 +1,4 @@
-const CACHE = 'supertonic-v2';
+const CACHE = 'supertonic-v3';
 const FILES = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
@@ -18,18 +18,15 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  // Only handle navigation and same-origin requests
   if (e.request.method !== 'GET') return;
+  // Network-first: try network, fall back to cache
   e.respondWith(
-    caches.match(e.request).then(cached => {
-      const fetched = fetch(e.request).then(res => {
-        if (res && res.status === 200) {
-          const clone = res.clone();
-          caches.open(CACHE).then(cache => cache.put(e.request, clone));
-        }
-        return res;
-      }).catch(() => cached);
-      return cached || fetched;
-    })
+    fetch(e.request).then(res => {
+      if (res && res.status === 200) {
+        const clone = res.clone();
+        caches.open(CACHE).then(cache => cache.put(e.request, clone));
+      }
+      return res;
+    }).catch(() => caches.match(e.request))
   );
 });
