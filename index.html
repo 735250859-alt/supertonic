@@ -545,6 +545,14 @@ body {
 .reading-level { font-size: 11px; padding: 3px 10px; border-radius: 8px; background: var(--accent2); color: var(--accent); font-weight: 600; }
 .speak-reading { display: flex; margin: 12px auto; width: auto; padding: 10px 28px; border-radius: 25px; font-size: 15px; }
 .reading-text { font-size: 16px; line-height: 1.8; color: #d8d8e8; margin: 12px 0; white-space: pre-wrap; }
+.sentence {
+  cursor: pointer;
+  transition: background 0.15s;
+  border-radius: 3px;
+  padding: 1px 0;
+}
+.sentence:hover { background: rgba(233,69,96,0.15); }
+.sentence:active, .sentence.active { background: rgba(233,69,96,0.3); }
 .reading-divider { text-align: center; color: var(--text2); font-size: 12px; margin: 16px 0 8px; letter-spacing: 1px; }
 .reading-translation { font-size: 14px; line-height: 1.7; color: var(--text2); white-space: pre-wrap; }
 </style>
@@ -4040,9 +4048,38 @@ function showReading(idx) {
   document.getElementById('reading-detail').style.display = '';
   document.getElementById('reading-title').textContent = r.title;
   document.getElementById('reading-level').textContent = r.level;
-  document.getElementById('reading-it').textContent = r.it;
+  // Split text into sentences and make each tappable
+  const sentences = r.it.split(/(?<=[.!?;])\s+/);
+  document.getElementById('reading-it').innerHTML = sentences.map((s, i) =>
+    '<span class=\"sentence\" onclick=\"speakSentence(event, ' + i + ')\">' + s + '</span> '
+  ).join('');
+  document.getElementById('reading-it').dataset.text = r.it;
   document.getElementById('reading-en').textContent = r.en;
   document.getElementById('main').scrollTop = 0;
+}
+
+function speakSentence(e, idx) {
+  e.stopPropagation();
+  const el = document.getElementById('reading-it');
+  const text = el.dataset.text;
+  if (!text || !window.speechSynthesis) return;
+  const sentences = text.split(/(?<=[.!?;])\s+/);
+  if (idx < 0 || idx >= sentences.length) return;
+  speechSynthesis.cancel();
+  readingPaused = false;
+  // Highlight the sentence
+  el.querySelectorAll('.sentence').forEach(s => s.classList.remove('active'));
+  const target = el.querySelectorAll('.sentence')[idx];
+  if (target) target.classList.add('active');
+  const utter = new SpeechSynthesisUtterance(sentences[idx]);
+  utter.lang = 'it-IT';
+  utter.rate = 0.85;
+  const voices = speechSynthesis.getVoices();
+  const itVoice = voices.find(v => v.lang.startsWith('it'));
+  if (itVoice) utter.voice = itVoice;
+  utter.onend = () => { if (target) target.classList.remove('active'); };
+  utter.onerror = () => { if (target) target.classList.remove('active'); };
+  speechSynthesis.speak(utter);
 }
 
 function showReadingList() {
@@ -4054,6 +4091,8 @@ function showReadingList() {
   if (typeof speechSynthesis !== 'undefined') speechSynthesis.cancel();
   const btn = document.getElementById('reading-speak');
   if (btn) { btn.classList.remove('speaking'); btn.textContent = '🔊 Listen'; }
+  // Clear sentence highlights
+  document.querySelectorAll('.sentence.active').forEach(s => s.classList.remove('active'));
 }
 
 let readingPaused = false;
