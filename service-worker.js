@@ -19,7 +19,6 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
-  // Network-first: try network, fall back to cache
   e.respondWith(
     fetch(e.request).then(res => {
       if (res && res.status === 200) {
