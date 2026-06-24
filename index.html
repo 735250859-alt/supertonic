@@ -555,6 +555,13 @@ body {
 .sentence:active, .sentence.active { background: rgba(233,69,96,0.3); }
 .reading-divider { text-align: center; color: var(--text2); font-size: 12px; margin: 16px 0 8px; letter-spacing: 1px; }
 .reading-translation { font-size: 14px; line-height: 1.7; color: var(--text2); white-space: pre-wrap; }
+.speed-selector { display:flex; justify-content:center; gap:6px; margin:8px 0 4px; }
+.speed-chip {
+  padding: 5px 14px; border-radius: 14px; font-size: 12px; font-weight: 600;
+  background: var(--surface2); color: var(--text2); cursor: pointer;
+  border: 1.5px solid transparent; transition: all 0.15s;
+}
+.speed-chip.active { background: var(--accent2); color: var(--accent); border-color: var(--accent); }
 </style>
 </head>
 <body>
@@ -633,6 +640,11 @@ body {
           <div class="reading-level" id="reading-level"></div>
         </div>
         <button class="speak-btn speak-reading" id="reading-speak" onclick="speakReading()" title="Read aloud">🔊 Listen</button>
+        <div class="speed-selector" id="speed-selector">
+          <span class="speed-chip active" data-rate="0.5" onclick="setReadingSpeed(0.5, this)">0.5×</span>
+          <span class="speed-chip" data-rate="0.8" onclick="setReadingSpeed(0.8, this)">0.8×</span>
+          <span class="speed-chip" data-rate="1.0" onclick="setReadingSpeed(1.0, this)">1×</span>
+        </div>
         <div class="reading-text" id="reading-it"></div>
         <div class="reading-divider">— Translation —</div>
         <div class="reading-translation" id="reading-en"></div>
@@ -651,7 +663,18 @@ body {
     </div>
     <div class="page-title" style="font-size:14px;margin-top:8px">Level Distribution</div>
     <div class="level-dist" id="level-dist"></div>
-    <button class="btn secondary" onclick="resetProgress()" style="margin-top:20px">Reset All Progress</button>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button class="btn secondary" onclick="exportProgress()" style="flex:1">📤 Export</button>
+      <button class="btn secondary" onclick="showImport()" style="flex:1">📥 Import</button>
+    </div>
+    <div id="import-modal" style="display:none;margin-top:12px">
+      <textarea id="import-data" placeholder="Paste exported data here..." style="width:100%;height:80px;background:var(--surface2);color:var(--text);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px;font-size:13px;resize:none"></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn" onclick="importProgress()" style="flex:1;font-size:14px;padding:12px">Import</button>
+        <button class="btn secondary" onclick="document.getElementById('import-modal').style.display='none'" style="flex:1;font-size:14px;padding:12px">Cancel</button>
+      </div>
+    </div>
+    <button class="btn secondary" onclick="resetProgress()" style="margin-top:10px">Reset All Progress</button>
   </div>
 </div>
 
@@ -4073,7 +4096,7 @@ function speakSentence(e, idx) {
   if (target) target.classList.add('active');
   const utter = new SpeechSynthesisUtterance(sentences[idx]);
   utter.lang = 'it-IT';
-  utter.rate = 0.85;
+  utter.rate = readingSpeed;
   const voices = speechSynthesis.getVoices();
   const itVoice = voices.find(v => v.lang.startsWith('it'));
   if (itVoice) utter.voice = itVoice;
@@ -4096,6 +4119,13 @@ function showReadingList() {
 }
 
 let readingPaused = false;
+let readingSpeed = 0.8;
+
+function setReadingSpeed(rate, el) {
+  readingSpeed = rate;
+  document.querySelectorAll('.speed-chip').forEach(c => c.classList.remove('active'));
+  if (el) el.classList.add('active');
+}
 
 function speakReading() {
   if (currentReading < 0 || typeof READINGS === 'undefined' || currentReading >= READINGS.length) return;
@@ -4126,7 +4156,7 @@ function speakReading() {
   readingPaused = false;
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = 'it-IT';
-  utter.rate = 0.8;
+  utter.rate = readingSpeed;
   utter.pitch = 1;
   const voices = speechSynthesis.getVoices();
   const itVoice = voices.find(v => v.lang.startsWith('it'));
@@ -4258,7 +4288,73 @@ const READINGS = [
     level: "A2 Elementary",
     it: `Vuoi preparare un piatto italiano semplice ma delizioso? Ti spiego come fare gli spaghetti aglio e olio, un classico della cucina italiana che richiede pochissimi ingredienti. Prima di tutto, metti a bollire una pentola d'acqua salata per la pasta. Mentre l'acqua si scalda, prendi una padella grande e versa quattro cucchiai di olio extravergine d'oliva. Aggiungi due spicchi d'aglio tagliati a fettine sottili e un peperoncino rosso secco. Accendi il fuoco basso e lascia soffriggere lentamente: l'aglio deve diventare dorato, ma attenzione a non bruciarlo! Quando l'acqua bolle, butta gli spaghetti e cuocili al dente, seguendo i minuti indicati sulla confezione. Un minuto prima di scolare la pasta, prendi un mestolo di acqua di cottura e versala nella padella con l'aglio e l'olio. Scola gli spaghetti e saltali nella padella a fuoco vivo per un minuto, mescolando bene per far assorbire il condimento. Se vuoi, aggiungi del prezzemolo fresco tritato. Servi subito, ben caldo. Il segreto di questo piatto sta nella semplicità: pochi ingredienti, ma di ottima qualità.`,
     en: `Do you want to prepare a simple but delicious Italian dish? Let me explain how to make spaghetti aglio e olio, a classic of Italian cuisine that requires very few ingredients. First of all, put a pot of salted water on to boil for the pasta. While the water heats up, take a large pan and pour four tablespoons of extra virgin olive oil. Add two cloves of garlic cut into thin slices and a dried red chili pepper. Turn on low heat and let it fry slowly: the garlic should become golden, but be careful not to burn it! When the water boils, throw in the spaghetti and cook it al dente, following the minutes indicated on the package. One minute before draining the pasta, take a ladle of cooking water and pour it into the pan with the garlic and oil. Drain the spaghetti and sauté them in the pan over high heat for one minute, mixing well to absorb the seasoning. If you like, add some chopped fresh parsley. Serve immediately, very hot. The secret of this dish lies in its simplicity: few ingredients, but of excellent quality.`
+
+  },
+  {
+    title: "Per un'ora d'amore — Matia Bazar",
+    level: "B1 Song Lyrics",
+    it: `Per un'ora d'amore non so cosa farei,
+per poterti sfiorare non so cosa darei,
+chiudo gli occhi senza te,
+le serate non finiscono mai,
+sole giallo mare blu,
+non vorrei farti restare così,
+un ricordo d'estate di più,
+e per un'ora d'amore venderei anche il cuore,
+e per un'ora d'amore venderei anche il cuore.
+
+Per un'ora d'amore non so cosa farei,
+per poterti sfiorare non so cosa darei,
+chiudo gli occhi, ti vorrei,
+non nei sogni ma così come sei,
+sole giallo mare blu,
+mi risveglio ora che manchi tu,
+aspettarti e sapere che ormai,
+io per un'ora d'amore venderei anche il cuore,
+io per un'ora d'amore venderei anche il cuore.
+
+Chiudo gli occhi penso a te,
+i ricordi non finiscono mai,
+sole giallo mare blu,
+come il vento sei volata anche tu,
+non rimane che dire vorrei,
+e per un'ora d'amore venderei anche il cuore,
+e per un'ora d'amore venderei anche il cuore.
+
+Per un'ora d'amore non so cosa farei,
+per poterti sfiorare non so cosa darei.
+Per un'ora d'amore non so cosa farei,
+per poterti sfiorare non so cosa darei.
+Per un'ora d'amore non so cosa farei,
+per poterti sfiorare non so cosa darei.`,
+    en: `"For an Hour of Love" — Matia Bazar (1976)
+
+For an hour of love, I don't know what I would do,
+to be able to touch you lightly, I don't know what I would give,
+I close my eyes without you,
+the evenings never end,
+yellow sun, blue sea,
+I wouldn't want to leave you like this,
+one more summer memory,
+and for an hour of love I would even sell my heart.
+
+For an hour of love, I don't know what I would do,
+I close my eyes, I would want you,
+not in dreams but just as you are,
+I wake up now that you're gone,
+waiting for you and knowing that by now,
+I, for an hour of love, would even sell my heart.
+
+I close my eyes, I think of you,
+the memories never end,
+like the wind you too have flown away,
+all that remains is to say I wish,
+and for an hour of love I would even sell my heart.
+
+For an hour of love, I don't know what I would do,
+to be able to touch you lightly, I don't know what I would give.`
   }
+];
 ];
 </script>
 </body>
