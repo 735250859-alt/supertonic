@@ -9,9 +9,14 @@
   for (const r of regs) await r.unregister();
   const keys = await caches.keys();
   for (const k of keys) await caches.delete(k);
-  document.getElementById('msg').innerHTML = '✅ All clear!<br><small>Old cache and service worker removed.</small>';
-  setTimeout(() => { location.href = './index.html?v=2'; }, 1500);
+  document.getElementById('msg').innerHTML = '✅ All clear! Tap below to open.';
 })();
 </script>
-<a class="btn" href="./index.html?v=2">→ Open SuperTonic</a>
+<a class="btn" href="#" id="openBtn">→ Open SuperTonic</a>
+<script>
+document.getElementById('openBtn').onclick = function(e) {
+  e.preventDefault();
+  location.href = './app.html?t=' + Date.now();
+};
+</script>
 </body></html>
